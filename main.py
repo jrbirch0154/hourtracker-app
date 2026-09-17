@@ -59,8 +59,7 @@ def read_entry(entry_id: int, db: Session = Depends(get_db)):
     entry = db.get(models.TimeEntryDB, entry_id)
 
     if entry is None:
-        raise HTTPException(status_code=404, detail=f"Entry {
-                            entry_id} does not exist")
+        raise HTTPException(status_code=404, detail=f"Entry {entry_id} does not exist")
 
     return entry
 
@@ -74,8 +73,7 @@ def delete_entry(entry_id: int, db: Session = Depends(get_db)):
     entry = db.get(models.TimeEntryDB, entry_id)
 
     if entry is None:
-        raise HTTPException(status_code=404, detail=f"Entry {
-                            entry_id} does not exist")
+        raise HTTPException(status_code=404, detail=f"Entry {entry_id} does not exist")
 
     db.delete(entry)
     db.commit()
@@ -104,3 +102,22 @@ def read_summary(start: datetime.date | None = None,
         models.TimeEntryDB.project).order_by(total.desc())
 
     return db.execute(statement).all()
+
+
+@app.patch("/entries/{entry_id}", response_model=schemas.EntryOut)
+def update_entry(entry_id: int, update: schemas.EntryUpdate, db: Session = Depends(get_db)):
+    """
+    Update one of the entries, based on ID
+    """
+    entry = db.get(models.TimeEntryDB, entry_id)
+
+    if entry is None:
+        raise HTTPException(status_code=404, detail=f"Entry {entry_id} does not exist")
+
+    for key, value in update.model_dump(exclude_unset=True).items():
+        setattr(entry, key, value)
+
+    db.commit()
+    db.refresh(entry)
+
+    return entry

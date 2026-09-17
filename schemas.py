@@ -3,12 +3,13 @@
 # Jacob Birch
 
 """
-This will house the pydantic models (request + response)
+This will house the pydantic models (request + response).
+Basically, ensures that the data coming in is correct
 """
 
 # %% Initializing
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 import datetime
 
 
@@ -18,7 +19,7 @@ class EntryIn(BaseModel):
     """
     project: str
     date: datetime.date
-    minutes: float
+    minutes: float = Field(gt=0) # Greater Than 0
     notes: str | None = None
 
 
@@ -40,3 +41,13 @@ class SummaryOut(BaseModel):
     total_minutes: float
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class EntryUpdate(BaseModel):
+    """
+    Update a current entry
+    """
+    project: str | None = None
+    date: datetime.date | None = None
+    minutes: float | None = Field(default=None, gt=0)
+    notes: str | None = None
